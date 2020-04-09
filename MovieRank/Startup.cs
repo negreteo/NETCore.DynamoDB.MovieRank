@@ -1,16 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.Extensions.NETCore.Setup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MovieRank.Libs.Mappers;
+using MovieRank.Libs.Repositories;
+using MovieRank.Libs.Repository;
+using MovieRank.Services;
 
 namespace MovieRank
 {
@@ -26,9 +26,9 @@ namespace MovieRank
       // This method gets called by the runtime. Use this method to add services to the container.
       public void ConfigureServices (IServiceCollection services)
       {
-         Environment.SetEnvironmentVariable ("AWS_ACCESS_KEY_ID", Configuration["AWS:AccessKey"]);
-         Environment.SetEnvironmentVariable ("AWS_SECRET_ACCESS_KEY", Configuration["AWS:SecretKey"]);
-         Environment.SetEnvironmentVariable ("AWS_REGION", Configuration["AWS:Region"]);
+         // Environment.SetEnvironmentVariable ("AWS_ACCESS_KEY_ID", Configuration["AWS:AccessKey"]);
+         // Environment.SetEnvironmentVariable ("AWS_SECRET_ACCESS_KEY", Configuration["AWS:SecretKey"]);
+         //Environment.SetEnvironmentVariable ("AWS_REGION", Configuration["AWS:Region"]);
 
          services.AddControllersWithViews ();
          services.AddMvc ();
@@ -37,9 +37,13 @@ namespace MovieRank
          services.AddDefaultAWSOptions (
             new AWSOptions
             {
-               Region = RegionEndpoint.GetBySystemName ("AWS_REGION")
+               Region = RegionEndpoint.GetBySystemName ("us-east-1")
             }
          );
+
+         services.AddSingleton<IMovieRankService, MovieRankService> ();
+         services.AddSingleton<IMovieRankRepository, MovieRankRepository> ();
+         services.AddSingleton<IMapper, Mapper> ();
       }
 
       // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,18 +62,18 @@ namespace MovieRank
          //app.UseHttpsRedirection();
          app.UseStaticFiles ();
 
-         app.UseMvc ();
+         //app.UseMvc ();
 
-         //app.UseRouting ();
+         app.UseRouting ();
 
          //app.UseAuthorization();
 
-         // app.UseEndpoints (endpoints =>
-         // {
-         //    endpoints.MapControllerRoute (
-         //       name: "default",
-         //       pattern: "{controller=Home}/{action=Index}/{id?}");
-         // });
+         app.UseEndpoints (endpoints =>
+         {
+            endpoints.MapControllerRoute (
+               name: "default",
+               pattern: "{controller=Home}/{action=Index}/{id?}");
+         });
       }
    }
 }
